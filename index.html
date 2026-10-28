@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Camorra Nantaise🇮🇹</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#ffffff);
+  --fg:var(--tg-theme-text-color,#14181f);
+  --muted:var(--tg-theme-hint-color,#6b7685);
+  --card:var(--tg-theme-secondary-bg-color,#f1f3f6);
+  --btn:var(--tg-theme-button-color,#2481cc);
+  --btn-fg:var(--tg-theme-button-text-color,#ffffff);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:var(--tg-theme-bg-color,#17212b);--fg:var(--tg-theme-text-color,#f3f5f7);--muted:var(--tg-theme-hint-color,#8a97a6);--card:var(--tg-theme-secondary-bg-color,#232e3c)}
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4;padding:1rem 1rem 6rem}
+header h1{margin:.2rem 0 .2rem;font-size:1.7rem;line-height:1.1}
+header p{margin:0 0 1rem;color:var(--muted)}
+.chips{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.6rem;margin-bottom:.4rem}
+.chip{flex:none;border:0;border-radius:999px;padding:.5rem 1rem;background:var(--card);color:var(--fg);font:inherit;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--btn);color:var(--btn-fg)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem}
+@media (min-width:36rem){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border-radius:1rem;overflow:hidden;cursor:pointer}
+.ph{aspect-ratio:1;display:grid;place-items:center;overflow:hidden}
+.ph img,.big img,.big video{width:100%;height:100%;object-fit:cover;display:block}
+.emo{font-size:3.4rem}
+.b{padding:.6rem .7rem .7rem}
+.nm{font-weight:600;min-height:2.6em;overflow:hidden}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:.3rem}
+.add{min-width:2.2rem;height:2.2rem;border:0;border-radius:50%;background:var(--btn);color:var(--btn-fg);font:inherit;font-weight:700;cursor:pointer}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:.7rem 1rem calc(.7rem + env(safe-area-inset-bottom,0px));background:var(--bg)}
+.go{width:100%;border:0;border-radius:.8rem;padding:.95rem;background:var(--btn);color:var(--btn-fg);font:inherit;font-weight:700;font-size:1.05rem;cursor:pointer}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end}
+#sheet[hidden],#bar[hidden]{display:none}
+.panel{position:relative;width:100%;max-height:88%;overflow:auto;background:var(--bg);border-radius:1.2rem 1.2rem 0 0;padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom,0px))}
+.x{position:absolute;top:.6rem;right:.6rem;z-index:2;width:2.2rem;height:2.2rem;border:0;border-radius:50%;background:var(--card);color:var(--fg);cursor:pointer}
+.big{aspect-ratio:4/3;border-radius:.9rem;overflow:hidden;background:var(--card);display:grid;place-items:center;margin-bottom:.8rem}
+.panel h2{margin:.2rem 0}
+.line{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--card)}
+.line small{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:.7rem}
+.qty button{width:2rem;height:2rem;border:0;border-radius:50%;background:var(--card);color:var(--fg);font-size:1.1rem;cursor:pointer}
+.tot{display:flex;justify-content:space-between;padding:.9rem 0;font-size:1.1rem}
+button:focus-visible{outline:3px solid var(--btn);outline-offset:2px}
+</style>
+</head>
+<body>
+<header><h1 id="shop"></h1><p id="tag"></p></header>
+<div class="chips" id="chips"></div>
+<div class="grid" id="grid"></div>
+<div id="bar" hidden></div>
+<div id="sheet" hidden></div>
+
+<script>
+/* ====== À MODIFIER : tout se règle ici ====== */
+var CONFIG = {
+  shop: "Menu 🇮🇹",
+  tagline: "Livraison dans tout le 44 18H 4H ",
+  contact: "lacamo44_3",   // pseudo Telegram qui reçoit les commandes, sans le @
+  currency: "€",
+  // Photos : ajoute-les dans ton dépôt GitHub, puis écris par exemple img: "images/bougie.jpg"
+  // Vidéo (facultatif) : video: "videos/bougie.mp4". Sans photo, l’emoji s’affiche.
+  products: [
+    {name:"1G Surinamienne 🇸🇷", price:60,emoji:"❄️", img:"", video:"", desc:"1G 60€ en livraison (44)"},
+    {name:"1G Écaille Colombienne 🇨🇴", price:70 , emoji:"❄️", img:"", video:"", desc:"1G ❄️ 70€ en livraison (44)"},
+    {name:"1G Crack Hollandais 🇳🇱", price:90€,emoji:"❄️", img:"", video:"", desc:"1G Crack 90€ en livraison (44)"},
+
+  {name:"0.5G Crack Hollandais 🇳🇱", price:50€,emoji:"❄️", img:"", video:"", desc:"0.5g Crack 90€ en livraison (44)"},
+  
+
+/* ====== Fin de la zone à modifier ====== */
+
+var tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+var P = CONFIG.products, cart = {}, cat = "Tout", mode = "";
+var $ = function(s){ return document.querySelector(s); };
+var money = function(n){ return n.toLocaleString("fr-FR") + " " + CONFIG.currency; };
+var esc = function(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+var count = function(){ return Object.keys(cart).reduce(function(s,k){ return s + cart[k]; }, 0); };
+var total = function(){ return Object.keys(cart).reduce(function(s,k){ return s + cart[k] * P[k].price; }, 0); };
+
+function media(p, big){
+  if (big && p.video) return '<video src="' + esc(p.video) + '" controls playsinline></video>';
+  if (p.img) return '<img src="' + esc(p.img) + '" alt="' + esc(p.name) + '">';
+  return '<div class="emo">' + (p.emoji || "🛍️") + '</div>';
+}
+
+function render(){
+  var cats = ["Tout"].concat(P.map(function(p){ return p.cat; }).filter(function(c,i,a){ return c && a.indexOf(c) == i; }));
+  $("#chips").innerHTML = cats.map(function(c){
+    return '<button class="chip" data-a="cat" data-v="' + esc(c) + '" aria-pressed="' + (c == cat) + '">' + esc(c) + '</button>';
+  }).join("");
+  $("#grid").innerHTML = P.map(function(p,i){
+    if (cat != "Tout" && p.cat != cat) return "";
+    return '<div class="card" data-a="open" data-v="' + i + '"><div class="ph">' + media(p) + '</div><div class="b"><div class="nm">' + esc(p.name) + '</div><div class="row"><b>' + money(p.price) + '</b><button class="add" data-a="add" data-v="' + i + '" aria-label="Ajouter au panier">' + (cart[i] ? cart[i] : "+") + '</button></div></div></div>';
+  }).join("");
+  var n = count();
+  $("#bar").hidden = !n;
+  $("#bar").innerHTML = n ? '<button class="go" data-a="cart">Voir ma commande (' + n + ') · ' + money(total()) + '</button>' : "";
+}
+
+function sheet(h, m){
+  mode = m;
+  $("#sheet").innerHTML = '<div class="panel"><button class="x" data-a="close" aria-label="Fermer">✕</button>' + h + '</div>';
+  $("#sheet").hidden = false;
+}
+function close(){ $("#sheet").hidden = true; mode = ""; }
+
+function showProduct(i){
+  var p = P[i];
+  sheet('<div class="big">' + media(p, 1) + '</div><h2>' + esc(p.name) + '</h2><b>' + money(p.price) + '</b><p>' + esc(p.desc) + '</p><button class="go" data-a="addclose" data-v="' + i + '">Ajouter au panier</button>', "prod");
+}
+function showCart(){
+  var ks = Object.keys(cart);
+  if (!ks.length){ sheet("<h2>Ma commande</h2><p>Ton panier est vide.</p>", "cart"); return; }
+  sheet('<h2>Ma commande</h2>' + ks.map(function(k){
+    return '<div class="line"><span>' + esc(P[k].name) + '<br><small>' + money(P[k].price) + '</small></span><span class="qty"><button data-a="minus" data-v="' + k + '" aria-label="Retirer">−</button><b>' + cart[k] + '</b><button data-a="add" data-v="' + k + '" aria-label="Ajouter">+</button></span></div>';
+  }).join("") + '<div class="tot"><span>Total</span><b>' + money(total()) + '</b></div><button class="go" data-a="send">Envoyer la commande</button>', "cart");
+}
+function send(){
+  var lines = Object.keys(cart).map(function(k){ return "- " + cart[k] + " × " + P[k].name + " (" + money(P[k].price * cart[k]) + ")"; });
+  var msg = "Bonjour, je souhaite commander :\n" + lines.join("\n") + "\nTotal : " + money(total());
+  var url = "https://t.me/" + CONFIG.contact + "?text=" + encodeURIComponent(msg);
+  if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
+}
+
+document.addEventListener("click", function(e){
+  if (e.target.id == "sheet"){ close(); return; }
+  var el = e.target.closest("[data-a]"); if (!el) return;
+  var a = el.dataset.a, v = el.dataset.v;
+  if (a == "cat"){ cat = v; render(); }
+  else if (a == "open") showProduct(v);
+  else if (a == "add"){ cart[v] = (cart[v] || 0) + 1; render(); if (mode == "cart") showCart(); }
+  else if (a == "addclose"){ cart[v] = (cart[v] || 0) + 1; render(); close(); }
+  else if (a == "minus"){ cart[v]--; if (cart[v] <= 0) delete cart[v]; render(); showCart(); }
+  else if (a == "cart") showCart();
+  else if (a == "send") send();
+  else if (a == "close") close();
+});
+
+document.title = CONFIG.shop;
+$("#shop").textContent = CONFIG.shop;
+$("#tag").textContent = CONFIG.tagline;
+render();
+</script>
+</body>
+</html>
+
